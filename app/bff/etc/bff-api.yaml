@@ -1,0 +1,18 @@
+Name: bff-api
+Host: 0.0.0.0
+Port: 8888
+UserRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:12379
+    Key: user.rpc
+  NonBlock: true
+Auth:
+  AccessSecret: "GWhUrXtmwWWKSwdWktsjm5JQ72UJU7nP"
+  AccessExpire: 604800
+  RefreshSecret: "rZYxcFGVAErh3ah7s7NnpSU8NPY4YfSu"
+  RefreshExpire: 2592000
+BizRedis:
+  Host: 127.0.0.1:6379
+  Pass:
+  Type: node

@@ -1,0 +1,99 @@
+services:
+  mysql8:
+    image: mysql:8.4.2
+    container_name: mysql8.4
+    restart: always
+    command:
+#      - 加入参数，设置 binlog 和主节点
+#      - --default_-authentication_plugin=mysql_native_password
+      - --binlog-format=ROW
+      - --server-id=1
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      # 设置初始化脚本
+      - ./.script/mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      # 设置端口映射
+      - "13306:3306"
+  redis:
+    image: redis:7.4.0
+    # restart: always
+    environment:
+      REDIS_PASSWORD: ""
+    ports:
+      # 设置端口映射
+      - "6379:6379"
+  etcd:
+    image: bitnami/etcd:3.4.34
+    environment:
+      # 不需要密码
+      - ALLOW_NONE_AUTHENTICATION=yes
+    ports:
+      - "12379:2379"
+  kafka:
+    image: bitnami/kafka:3.6
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+#      - 创建三个分区
+      - KAFKA_CREATE_TOPIC=gomall_binlog:3:1
+#      - 允许自动创建 topic，线上不要开启
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+#  prometheus:
+#    image: prom/prometheus
+#    volumes:
+##      - 将本地的 prometheus 文件映射到容器内的配置文件
+#      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+#    command:
+#      # 开启 remote writer
+#      - "--web.enable-remote-write-receiver"
+#      - "--config.file=/etc/prometheus/prometheus.yml"
+#    ports:
+#      - "9091:9090"
+#  grafana:
+#    image: grafana/grafana-enterprise:11.2.2
+#    ports:
+#      - "3000:3000"
+#  zipkin:
+#    # 用的是不支持 kafka 之类的简化版本
+#    image: openzipkin/zipkin-slim:3.4
+#    ports:
+#      - "9411:9411"
+  elasticsearch:
+    image: elasticsearch:8.15.5
+    environment:
+      # 单节点形态
+      - "discovery.type=single-node"
+      # 禁用 xpack 功能
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+#  logstash:
+#    image: elastic/logstash:8.15.5
+#    container_name: logstash
+#    volumes:
+#      - ./config/logstash:/usr/share/logstash/pipeline
+##      - ./logstash-logs:/usr/share/logstash/logs
+##      - ./app.log:/usr/share/logstash/app.log
+#    environment:
+#      - "xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200"
+#    ports:
+#      - "5044:5044"
+#  kibana:
+#    image: docker.elastic.co/kibana/kibana:8.15.5
+#    container_name: kibana
+#    environment:
+#      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+#      - i18n.locale=zh-CN
+#    ports:
+#      - "5601:5601"

@@ -1,0 +1,5 @@
+package jwtx
+
+func SetLoginJwt() {
+
+}

@@ -1,0 +1,69 @@
+syntax = "v1"
+
+// goctl api go -api bff.api -dir .
+info (
+	title:   "type title here"
+	desc:    "type desc here"
+	author:  "type author here"
+	email:   "type email here"
+	version: "type version here"
+)
+
+type (
+	RegisterRequest {
+		Phone           string `json:"phone"`
+		Password        string `json:"password"`
+		ConfirmPassword string `json:"confirmPassword"`
+	}
+	RegisterResponse  {}
+	LoginRequest {
+		Phone    string `json:"phone"`
+		Password string `json:"password"`
+	}
+	LoginResponse {
+		Uid int64 `uid`
+	}
+	ProfileResponse {
+		Phone    string `json:"phone"`
+		Email    string `json:"email"`
+		NickName string `json:"nick_name"`
+		Avatar   string `json:"avatar"`
+		Ctime    int64  `json:"ctime"`
+	}
+)
+
+@server (
+	prefix:     /api/v1/users
+	middleware: AuthMiddleware
+	group:      user
+)
+service bff-api {
+	@handler Profile
+	get /profile returns (ProfileResponse)
+}
+
+@server (
+	prefix: /api/v1/users
+	group:  user
+)
+service bff-api {
+	@handler RegisterHandler
+	post /register (RegisterRequest) returns (RegisterResponse)
+
+	@handler LoginHandler
+	post /login (LoginRequest) returns (LoginResponse)
+
+	@handler RefreshToken
+	post /refresh_token
+}
+
+@server (
+	prefix:     /api/v1/product
+	middleware: AuthMiddleware
+	group:      product
+)
+service bff-api {
+	@handler GetProductHandler
+	post /login (LoginRequest) returns (LoginResponse)
+}
+
